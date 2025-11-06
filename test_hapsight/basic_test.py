@@ -1,7 +1,8 @@
 import numpy as np
 
-from hapsight.my_module import typed_function
+from hapsight.mainwindow import MainWindow
 
 
-def test_typed_function():
-    assert not typed_function(np.zeros(10), "")
+def test_mainwindow():
+    app = MainWindow()
+    assert isinstance(app, MainWindow)
