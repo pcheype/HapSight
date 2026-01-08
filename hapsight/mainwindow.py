@@ -5,10 +5,10 @@ from PySide6.QtWidgets import (
     QMainWindow,
     QTabWidget,  # Import pour le système d'onglets
 )
-from PySide6.QtGui import QAction
-from PySide6.QtCore import Qt
+
 from hapsight.mapwidget import MapWidget
 from hapsight.statswidget import StatsWidget
+
 
 # --- Fenêtre Principale (Conteneur des onglets) ---
 class MainWindow(QMainWindow):
@@ -21,7 +21,7 @@ class MainWindow(QMainWindow):
 
         # --- 1. Création du QTabWidget ---
         self.tab_manager = QTabWidget()
-        
+
         # --- 2. Création des instances de nos widgets d'onglets ---
         self.map_tab = MapWidget()
         self.stats_tab = StatsWidget()
@@ -33,6 +33,7 @@ class MainWindow(QMainWindow):
         # --- 4. Définir le QTabWidget comme widget central ---
         # Le widget central remplit la MainWindow
         self.setCentralWidget(self.tab_manager)
+
 
 def main():
     app = QApplication(sys.argv)

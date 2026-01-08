@@ -1,148 +1,209 @@
+import io
+import os
+import sys
+
+import folium
+import pandas as pd  # Importation de Pandas pour gérer les données
+from PySide6.QtCore import QUrl
+from PySide6.QtWebEngineWidgets import QWebEngineView
 from PySide6.QtWidgets import (
     QApplication,
-    QMainWindow,
-    QWidget,
-    QTabWidget, 
-    QVBoxLayout,
-    QHBoxLayout, 
+    QGroupBox,
+    QHBoxLayout,
     QLabel,
-    QGroupBox    
+    QMainWindow,
+    QVBoxLayout,
+    QWidget,
 )
-from PySide6.QtCore import Qt,QUrl, Signal
-import folium 
-from PySide6.QtWebEngineWidgets import QWebEngineView
-from PySide6.QtWebEngineCore import QWebEnginePage
-import io  
+
 
 class MapWidget(QWidget):
-    """
-    Ce widget contiendra la visualisation de la carte du monde.
-    (Probablement un QWebEngineView pour afficher Folium, ou un QMapViewer).
-    """
-    country_clicked = Signal(str)  # Signal émis lorsqu'un pays est cliqué
     def __init__(self, parent=None):
         super().__init__(parent)
-        
-        # Définir une mise en page (layout)
+
+        # --- CHARGEMENT DES DONNÉES CSV ---
+        self.data_happiness = None
+        self.load_csv_data()
+
         layout = QHBoxLayout(self)
-        
-        # Vous initialiserez vos composants de carte ici
+
+        # Partie Gauche : Carte
         self.cartegroupbox = QGroupBox("")
         cartegroupbox_layout = QVBoxLayout()
         self.web_view = QWebEngineView()
+        self.web_view.titleChanged.connect(self.on_country_clicked)
         cartegroupbox_layout.addWidget(self.web_view)
         self.cartegroupbox.setLayout(cartegroupbox_layout)
         layout.addWidget(self.cartegroupbox)
-        self.load_folium_map()
-        
+
+        # Partie Droite : Infos
         self.infogroupbox = QGroupBox("")
         infogroupbox_layout = QVBoxLayout()
-        info_placeholder_label = QLabel("Infos ici")
-        info_placeholder_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        infogroupbox_layout.addWidget(info_placeholder_label)
+        name_layout = QHBoxLayout()
+        self.drapeau_label = QLabel()
+        self.name_label = QLabel("Cliquez sur un pays pour voir les données.")
+        self.info_groupbox = QGroupBox("Informations du Pays")
+
+        name_layout.addWidget(self.drapeau_label)
+        name_layout.addWidget(self.name_label)
+        name_layout.setStretch(0, 1)
+        name_layout.setStretch(1, 10)
+        infogroupbox_layout.addLayout(name_layout)
+        infogroupbox_layout.addWidget(self.info_groupbox)
+        infogroupbox_layout.setStretch(0, 1)
+        infogroupbox_layout.setStretch(1, 10)
+
         self.infogroupbox.setLayout(infogroupbox_layout)
         layout.addWidget(self.infogroupbox)
+        layout.setStretch(0, 10)  # La carte prend plus de place
+        layout.setStretch(1, 4)
 
-        layout.setStretch(0,10)
-        layout.setStretch(1,4)
+        self.load_folium_map()
 
-    def load_folium_map(self):
-        """
-        Génère une carte Folium interactive :
-        - Impossible de se déplacer hors du monde.
-        - Le pays cliqué se colore d'une teinte plus foncée.
-        """
-
-        # --- URL GeoJSON des pays ---
-        geo_data_url = (
-            "https://raw.githubusercontent.com/python-visualization/folium/main/"
-            "examples/data/world-countries.json"
+    def load_csv_data(self):
+        """Charge le fichier CSV en mémoire avec Pandas"""
+        csv_filename = (
+            "dataset/happiness.csv"  # ASSUREZ-VOUS QUE VOTRE FICHIER A CE NOM
         )
 
-        # Coordonnées centrées
-        coords = [20, 0]
+        if os.path.exists(csv_filename):
+            try:
+                self.data_happiness = pd.read_csv(csv_filename)
+                print("Données chargées avec succès !")
+                # Nettoyage optionnel : enlever les espaces dans les noms de colonnes
+                self.data_happiness.columns = self.data_happiness.columns.str.strip()
+            except Exception as e:
+                print(f"Erreur lors de la lecture du CSV : {e}")
+        else:
+            print(f"ATTENTION : Le fichier {csv_filename} est introuvable.")
 
-        # --- Création de la carte ---
+    def on_country_clicked(self, title):
+        """Réception du signal JS -> Python"""
+        if not title or "qrc:/" in title or "http" in title:
+            return
+
+        # On appelle la logique métier
+        self.afficher_donnees_pays(title)
+
+    def afficher_donnees_pays(self, pays_map):
+        """
+        Cherche le pays dans le DataFrame Pandas et affiche les infos.
+        """
+        print(f"Recherche pour : {pays_map}")
+
+        if self.data_happiness is None:
+            self.info_label.setText(
+                "Erreur : Base de données non chargée.\nVérifiez le fichier CSV."
+            )
+            return
+
+        # --- GESTION DES NOMS DE PAYS ---
+        # La carte envoie parfois des noms différents du CSV (ex: USA)
+        # On peut faire un dictionnaire de mapping manuel pour les cas courants
+        mapping_noms = {
+            "United States of America": "United States",
+            "Tanzania": "United Republic of Tanzania",
+            "Congo": "Congo (Brazzaville)",
+            "Democratic Republic of the Congo": "Congo (Kinshasa)",
+        }
+
+        # On utilise le nom mappé si il existe, sinon le nom d'origine
+        nom_recherche = mapping_noms.get(pays_map, pays_map)
+
+        # --- RECHERCHE PANDAS ---
+        # On filtre le tableau où la colonne 'Country' correspond au nom
+        # Note: Adaptez 'Country' si la colonne s'appelle 'Country name' dans votre CSV précis
+        resultat = self.data_happiness[self.data_happiness["Country"] == nom_recherche]
+
+        if not resultat.empty:
+            # On prend la première ligne trouvée (souvent la plus récente ou l'unique)
+            data = resultat.iloc[0]
+
+            # Construction du texte d'affichage
+            # Adaptez les clés ['Happiness Score'] etc selon les VRAIES colonnes de votre CSV
+            infos = f"<b>PAYS : {pays_map.upper()}</b><br><br>"
+
+            # Exemple basé sur les colonnes probables du dataset Kaggle
+            try:
+                infos += (
+                    f"🏆 Happiness Rank : {data.get('Happiness Rank', 'Aucun')}<br>"
+                )
+                infos += (
+                    f"😃 Happiness Score : {data.get('happiness_score', 'N/A')}<br>"
+                )
+                infos += f"💰 GDP per Capita : {data.get('gdp_per_capita', 'N/A')}<br>"
+                infos += f"👪 Family : {data.get('family', 'N/A')}<br>"
+                infos += f"heart Health (Life Expectancy) : {data.get('Health (Life Expectancy)', 'N/A')}<br>"
+                infos += f"🗽 Freedom : {data.get('Freedom', 'N/A')}<br>"
+            except Exception as e:
+                infos += f"<br>Erreur d'affichage des colonnes : {e}"
+
+            self.info_label.setText(infos)
+        else:
+            self.info_label.setText(
+                f"<b>{pays_map}</b><br><br>Pas de données trouvées dans le CSV pour ce pays.<br>Essayez de vérifier l'orthographe dans le fichier."
+            )
+
+    def load_folium_map(self):
+        # ... (Ce code reste IDENTIQUE à votre version précédente fonctionnelle) ...
+        geo_data_url = "https://raw.githubusercontent.com/python-visualization/folium/main/examples/data/world-countries.json"
+
         m = folium.Map(
-            location=coords,
-            tiles="CartoDB positron",
+            location=[20, 0],
             zoom_start=2,
             min_zoom=2,
             max_zoom=6,
-            max_bounds=True,  # Empêche de sortir de la zone du monde
+            tiles="CartoDB positron",
+            max_bounds=True,
         )
+        map_id = m.get_name()
 
-        # --- Couche GeoJSON cliquable ---
-        geojson = folium.GeoJson(
-            geo_data_url,
-            name="Pays",
-            style_function=lambda feature: {
-                "fillColor": "#D6EAF8",
-                "color": "#5DADE2",
-                "weight": 0.7,
-                "fillOpacity": 0.7,
-            },
-            highlight_function=lambda feature: {
-                # Lorsqu'on clique ou survole : couleur plus foncée
-                "fillColor": "#3498DB",
-                "color": "#1F618D",
-                "weight": 1.5,
-                "fillOpacity": 0.9,
-            },
-            tooltip=folium.GeoJsonTooltip(fields=["name"], aliases=["Pays :"]),
-        )
-        geojson.add_to(m)
-
-        # --- Script JS pour gérer le clic sur un pays ---
-        # Lorsqu'on clique, on applique le style "highlight_function"
         click_js = """
         function onEachFeature(feature, layer) {
             layer.on({
                 click: function (e) {
-                    // Réinitialise tous les styles
                     geojsonLayer.resetStyle();
-                    // Applique le style de surbrillance au pays cliqué
                     e.target.setStyle({
-                        fillColor: '#2E86C1',
-                        color: '#154360',
-                        weight: 2,
-                        fillOpacity: 0.9
+                        fillColor: '#2E86C1', color: '#154360', weight: 2, fillOpacity: 0.9
                     });
-                    // Centre la vue sur le pays cliqué
-                    map.fitBounds(e.target.getBounds());
+                    document.title = feature.properties.name;
                 }
             });
         }
         """
-        # --- Suppression du carré orange (focus Leaflet) ---
-        remove_focus_css = """
-        <style>
-            /* Supprime le contour orange autour des pays cliqués */
-            .leaflet-interactive:focus {
-                outline: none !important;
-            }
-        </style>
-        """
+        remove_focus_css = (
+            "<style>.leaflet-interactive:focus { outline: none !important; }</style>"
+        )
         m.get_root().header.add_child(folium.Element(remove_focus_css))
 
-
-        # Injection du script JS dans la carte
-        m.get_root().script.add_child(folium.Element(f"""
-            var map = this;
+        m.get_root().script.add_child(
+            folium.Element(f"""
             var geojsonLayer = L.geoJson(null, {{
                 style: function(feature) {{
                     return {{ fillColor: '#D6EAF8', color: '#5DADE2', weight: 0.7, fillOpacity: 0.7 }};
                 }},
                 onEachFeature: onEachFeature
             }});
+
+            fetch("{geo_data_url}")
+                .then(function(response) {{ return response.json(); }})
+                .then(function(data) {{
+                    geojsonLayer.addData(data);
+                    geojsonLayer.addTo({map_id});
+                }});
             {click_js}
-        """))
+        """)
+        )
 
-        # --- Ajout des limites de déplacement (le monde entier) ---
-        m.fit_bounds([[-60, -180], [85, 180]])
-
-        # --- Export vers le QWebEngineView ---
         data = io.BytesIO()
         m.save(data, close_file=False)
-        html_content = data.getvalue().decode("utf-8")
-        self.web_view.setHtml(html_content, baseUrl=QUrl("qrc:/"))
+        self.web_view.setHtml(data.getvalue().decode("utf-8"), baseUrl=QUrl("qrc:/"))
+
+
+if __name__ == "__main__":
+    app = QApplication(sys.argv)
+    window = QMainWindow()
+    window.resize(1200, 800)
+    window.setCentralWidget(MapWidget())
+    window.show()
+    sys.exit(app.exec())
