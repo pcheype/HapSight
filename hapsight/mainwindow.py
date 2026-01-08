@@ -1,38 +1,40 @@
 import sys
+import pandas as pd
 
-from PySide6.QtWidgets import (
-    QApplication,
-    QMainWindow,
-    QTabWidget,  # Import pour le système d'onglets
-)
-from PySide6.QtGui import QAction
-from PySide6.QtCore import Qt
+from PySide6.QtWidgets import QApplication, QMainWindow, QTabWidget
+
 from hapsight.mapwidget import MapWidget
 from hapsight.statswidget import StatsWidget
+from hapsight.countrieswidget import CountriesWidget
 
-# --- Fenêtre Principale (Conteneur des onglets) ---
+
+def load_data() -> pd.DataFrame:
+    # Chemin relatif depuis la racine du repo (là où tu lances `uv run hapsight`)
+    return pd.read_csv("dataset/WorldHappiness_Corruption_2015_2020.csv")
+
+
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
 
-        # --- Paramètres de la fenêtre principale ---
         self.setWindowTitle("HappySight")
         self.setGeometry(100, 100, 1200, 600)
 
-        # --- 1. Création du QTabWidget ---
-        self.tab_manager = QTabWidget()
-        
-        # --- 2. Création des instances de nos widgets d'onglets ---
-        self.map_tab = MapWidget()
-        self.stats_tab = StatsWidget()
+        df = load_data()
 
-        # --- 3. Ajout des onglets au QTabWidget ---
+        self.tab_manager = QTabWidget()
+
+        # ✅ On passe df à tous les onglets
+        self.map_tab = MapWidget(df)
+        self.stats_tab = StatsWidget(df)
+        self.countries_tab = CountriesWidget(df)
+
         self.tab_manager.addTab(self.map_tab, "Carte du Monde")
         self.tab_manager.addTab(self.stats_tab, "Statistiques et Corrélations")
+        self.tab_manager.addTab(self.countries_tab, "Pays")
 
-        # --- 4. Définir le QTabWidget comme widget central ---
-        # Le widget central remplit la MainWindow
         self.setCentralWidget(self.tab_manager)
+
 
 def main():
     app = QApplication(sys.argv)
