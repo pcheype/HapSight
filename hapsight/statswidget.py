@@ -48,13 +48,17 @@ class StatsWidget(QWidget):
             "Histogramme par continent",
             "Évolution (bonheur + corruption) par pays",
             "Comparatif multi-pays (menu déroulant)",
-            "Nuage de points 3D (corrélations)"
+            "Nuage de points 3D (corrélations)",
+            "Nuage de points 2D"
         ])
         self.cmb_graph.currentTextChanged.connect(self._update_controls_visibility)
 
         # Variable (histo/3D)
         self.cmb_metric = QComboBox()
         self.cmb_metric.addItems(self._numeric_columns_candidates())
+
+
+
 
         # Continent (histo)
         self.cmb_continent = QComboBox()
@@ -108,6 +112,13 @@ class StatsWidget(QWidget):
         self.cmb_y.addItems(nums)
         self.cmb_z.addItems(nums)
 
+        
+        #Variables (2D)
+        self.var2D_x = QComboBox()
+        self.var2D_x.addItems(self._numeric_columns_candidates())
+        self.var2D_y = QComboBox()
+        self.var2D_y.addItems(self._numeric_columns_candidates())
+
         # Boutons
         self.btn_plot = QPushButton("Générer")
         self.btn_plot.clicked.connect(self.plot)
@@ -158,6 +169,12 @@ class StatsWidget(QWidget):
         controls.addWidget(QLabel("3D Z :"), r, 0)
         controls.addWidget(self.cmb_z, r, 1)
         controls.addWidget(self.btn_save, r, 3)
+
+        r += 1
+        controls.addWidget(QLabel("2D X :"), r, 0)
+        controls.addWidget(self.var2D_x, r, 1)
+        controls.addWidget(QLabel("2D Y :"), r, 2)
+        controls.addWidget(self.var2D_y, r, 3)
 
         root.addWidget(controls_box)
 
@@ -264,9 +281,14 @@ class StatsWidget(QWidget):
         is_evol = graph_type.startswith("Évolution")
         is_multi = graph_type.startswith("Comparatif")
         is_3d = graph_type.startswith("Nuage de points 3D")
+        is_2d = graph_type.startswith("Nuage de points 2D")
 
         self.cmb_metric.setEnabled(is_histo or is_3d)
         self.cmb_continent.setEnabled(is_histo)
+
+        self.var2D_y.setEnabled(is_2d)
+        self.var2D_x.setEnabled(is_2d)
+
 
         self.cmb_country.setEnabled(is_evol)
         self.cmb_multi.setEnabled(is_multi)
