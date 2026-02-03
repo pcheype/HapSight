@@ -9,9 +9,9 @@ dependencies = [
     "pandas[parquet]>=2,<3",
     "pyside6",
     "folium",
-    "pycountry",
-    "requests",
-    "matplotlib"
+    "scipy",
+    "numpy",
+    "scikit-learn"
 ]
 
 
