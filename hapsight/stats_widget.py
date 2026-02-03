@@ -392,7 +392,7 @@ class StatsWidget(QWidget):
         X_scaled = scaler.fit_transform(X)
 
         n_clusters = self.nbcluster.value()
-        kmeans = KMeans(n_clusters=n_clusters, random_state=42, n_init=10)
+        kmeans = KMeans(n_clusters=n_clusters, random_state=42, n_init="auto")
         self.dff_current["Cluster"] = kmeans.fit_predict(X_scaled)
 
         self.figurecorr.clear()
