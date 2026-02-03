@@ -304,7 +304,7 @@ class StatsWidget(QWidget):
                 )
             else:
                 self.ax.hist(
-                    dff_single[var].values,
+                    dff_single[var].values.astype(float),
                     bins="auto",
                     color="#0077c1",  # type: ignore
                     edgecolor="black",

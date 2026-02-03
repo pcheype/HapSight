@@ -49,9 +49,12 @@ class PandasTableModel(QAbstractTableModel):
         return None
 
     def headerData(
-        self, section: int, orientation: Qt.Orientation, role=Qt.DisplayRole
+        self,
+        section: int,
+        orientation: Qt.Orientation,
+        role=Qt.ItemDataRole.DisplayRole,
     ):  # type: ignore
-        if role != Qt.DisplayRole:  # type: ignore
+        if role != Qt.ItemDataRole.DisplayRole:  # type: ignore
             return None
         if orientation == Qt.Horizontal:  # type: ignore
             return str(self._df.columns[section])
