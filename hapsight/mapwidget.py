@@ -1,9 +1,11 @@
 import io
-import requests
-import pycountry
-import pandas as pd
+
 import folium
 import matplotlib
+import pandas as pd
+import pycountry
+import requests
+
 matplotlib.use("QtAgg")  # Obligatoire pour PySide6
 from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg
 from matplotlib.figure import Figure
@@ -11,8 +13,14 @@ from PySide6.QtCore import Qt, QUrl
 from PySide6.QtGui import QPixmap
 from PySide6.QtWebEngineWidgets import QWebEngineView
 from PySide6.QtWidgets import (
-    QWidget, QVBoxLayout, QHBoxLayout,
-    QGridLayout, QLabel, QGroupBox, QFrame, QComboBox
+    QComboBox,
+    QFrame,
+    QGridLayout,
+    QGroupBox,
+    QHBoxLayout,
+    QLabel,
+    QVBoxLayout,
+    QWidget,
 )
 
 
@@ -32,7 +40,9 @@ class MapWidget(QWidget):
 
         # GAUCHE : CARTE
         self.cartegroupbox = QGroupBox()
-        self.cartegroupbox.setStyleSheet("QGroupBox { border: 1px solid #CCC; border-radius: 5px; }")
+        self.cartegroupbox.setStyleSheet(
+            "QGroupBox { border: 1px solid #CCC; border-radius: 5px; }"
+        )
         carte_layout = QVBoxLayout()
         carte_layout.setContentsMargins(1, 1, 1, 1)
 
@@ -45,7 +55,9 @@ class MapWidget(QWidget):
 
         # DROITE : DASHBOARD
         self.infogroupbox = QFrame()
-        self.infogroupbox.setStyleSheet("QFrame { background-color: #F8F9F9; border-radius: 8px; }")
+        self.infogroupbox.setStyleSheet(
+            "QFrame { background-color: #F8F9F9; border-radius: 8px; }"
+        )
 
         info_layout = QVBoxLayout()
         info_layout.setSpacing(15)
@@ -58,7 +70,9 @@ class MapWidget(QWidget):
         self.combo_annee = QComboBox()
         self.combo_annee.addItems(["2015", "2016", "2017", "2018", "2019", "2020"])
         self.combo_annee.setCurrentIndex(5)
-        self.combo_annee.setStyleSheet("QComboBox { background: white; padding: 4px; border: 1px solid #CCC; }")
+        self.combo_annee.setStyleSheet(
+            "QComboBox { background: white; padding: 4px; border: 1px solid #CCC; }"
+        )
         self.combo_annee.currentTextChanged.connect(self.on_year_changed)
 
         year_layout.addWidget(lbl_annee)
@@ -72,10 +86,14 @@ class MapWidget(QWidget):
         self.lbl_drapeau = QLabel("🏳️")
         self.lbl_drapeau.setFixedSize(90, 60)
         self.lbl_drapeau.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.lbl_drapeau.setStyleSheet("border: 1px solid #CCC; background-color: white; border-radius: 4px;")
+        self.lbl_drapeau.setStyleSheet(
+            "border: 1px solid #CCC; background-color: white; border-radius: 4px;"
+        )
 
         self.lbl_pays = QLabel("Sélectionnez un pays")
-        self.lbl_pays.setStyleSheet("font-size: 18px; font-weight: bold; color: #2C3E50;")
+        self.lbl_pays.setStyleSheet(
+            "font-size: 18px; font-weight: bold; color: #2C3E50;"
+        )
         self.lbl_pays.setWordWrap(True)
 
         header_layout.addWidget(self.lbl_drapeau)
@@ -84,20 +102,28 @@ class MapWidget(QWidget):
 
         # SCORES
         score_frame = QFrame()
-        score_frame.setStyleSheet("QFrame { background-color: #D6EAF8; border: 1px solid #AED6F1; border-radius: 10px; }")
+        score_frame.setStyleSheet(
+            "QFrame { background-color: #D6EAF8; border: 1px solid #AED6F1; border-radius: 10px; }"
+        )
         score_layout = QVBoxLayout(score_frame)
 
         lbl_titre_score = QLabel("HAPPINESS SCORE")
         lbl_titre_score.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        lbl_titre_score.setStyleSheet("color: #2471A3; font-weight: bold; font-size: 11px; border: none;")
+        lbl_titre_score.setStyleSheet(
+            "color: #2471A3; font-weight: bold; font-size: 11px; border: none;"
+        )
 
         self.lbl_score_valeur = QLabel("-")
         self.lbl_score_valeur.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.lbl_score_valeur.setStyleSheet("color: #154360; font-weight: bold; font-size: 38px; border: none;")
+        self.lbl_score_valeur.setStyleSheet(
+            "color: #154360; font-weight: bold; font-size: 38px; border: none;"
+        )
 
         self.lbl_rank_valeur = QLabel("Rang mondial : -")
         self.lbl_rank_valeur.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.lbl_rank_valeur.setStyleSheet("color: #555; font-style: italic; font-size: 12px; border: none;")
+        self.lbl_rank_valeur.setStyleSheet(
+            "color: #555; font-style: italic; font-size: 12px; border: none;"
+        )
 
         score_layout.addWidget(lbl_titre_score)
         score_layout.addWidget(self.lbl_score_valeur)
@@ -112,7 +138,9 @@ class MapWidget(QWidget):
         self.val_generosity = QLabel("-")
 
         details_group = QGroupBox()
-        details_group.setStyleSheet("QGroupBox { border: 1px solid #DDD; margin-top: 5px; }")
+        details_group.setStyleSheet(
+            "QGroupBox { border: 1px solid #DDD; margin-top: 5px; }"
+        )
         grid_stats = QGridLayout()
         grid_stats.setVerticalSpacing(20)
         grid_stats.setHorizontalSpacing(10)
@@ -121,7 +149,9 @@ class MapWidget(QWidget):
             lbl_icon = QLabel(f"{icon} {label}")
             lbl_icon.setStyleSheet("color: #666; font-size: 12px; border: none;")
             widget.setAlignment(Qt.AlignmentFlag.AlignRight)
-            widget.setStyleSheet("font-weight: bold; color: #333; font-size: 13px; border: none;")
+            widget.setStyleSheet(
+                "font-weight: bold; color: #333; font-size: 13px; border: none;"
+            )
 
             container = QWidget()
             h = QHBoxLayout(container)
@@ -159,7 +189,6 @@ class MapWidget(QWidget):
         self.load_folium_map()
 
     def load_df_data(self):
-
         df = self.df.copy()
         df.columns = df.columns.str.strip()
 
@@ -171,7 +200,6 @@ class MapWidget(QWidget):
 
         self.data_happiness = df
         print("Données DF chargées! Ouverture de l'application.")
-
 
     # EVENTS
     def on_country_clicked(self, title):
@@ -185,7 +213,7 @@ class MapWidget(QWidget):
         if self.pays_actuel:
             self.afficher_donnees_pays()
 
-    #AFFICHER PAYS
+    # AFFICHER PAYS
     def afficher_donnees_pays(self):
         if not self.pays_actuel or self.data_happiness is None:
             return
@@ -200,8 +228,8 @@ class MapWidget(QWidget):
         annee = int(self.combo_annee.currentText())
 
         resultat = self.data_happiness[
-            (self.data_happiness["Country"] == nom_recherche) &
-            (self.data_happiness["Year"] == annee)
+            (self.data_happiness["Country"] == nom_recherche)
+            & (self.data_happiness["Year"] == annee)
         ]
 
         if resultat.empty:
@@ -209,15 +237,24 @@ class MapWidget(QWidget):
             self.lbl_score_valeur.setText("-")
             self.lbl_rank_valeur.setText("-")
             self.lbl_drapeau.setText("🏳️")
-            for l in [self.val_gdp, self.val_health, self.val_cpi, self.val_family, self.val_freedom, self.val_generosity]:
-                l.setText("-")
+            for label in [
+                self.val_gdp,
+                self.val_health,
+                self.val_cpi,
+                self.val_family,
+                self.val_freedom,
+                self.val_generosity,
+            ]:
+                label.setText("-")
             self.figure.clear()
             self.canvas.draw()
             return
 
         data = resultat.iloc[0]
 
-        self.lbl_pays.setText(f"{self.pays_actuel.upper()} ({data.get('continent', '-')})")
+        self.lbl_pays.setText(
+            f"{self.pays_actuel.upper()} ({data.get('continent', '-')})"
+        )
 
         # Drapeau
         iso_code = self.get_country_code(nom_recherche)
@@ -228,11 +265,15 @@ class MapWidget(QWidget):
                 if r.status_code == 200:
                     pix = QPixmap()
                     pix.loadFromData(r.content)
-                    pix = pix.scaled(self.lbl_drapeau.size(), Qt.KeepAspectRatio, Qt.SmoothTransformation) # type: ignore
+                    pix = pix.scaled(
+                        self.lbl_drapeau.size(),
+                        Qt.KeepAspectRatio, #type: ignore
+                        Qt.SmoothTransformation, #type: ignore
+                    )  # type: ignore
                     self.lbl_drapeau.setPixmap(pix)
                 else:
                     self.lbl_drapeau.setText("🏳️")
-            except:
+            except Exception:  # noqa: E722
                 self.lbl_drapeau.setText("🏳️")
         else:
             self.lbl_drapeau.setText("🏳️")
@@ -241,20 +282,20 @@ class MapWidget(QWidget):
         try:
             score = float(data.get("happiness_score", 0))
             self.lbl_score_valeur.setText(f"{score:.2f}")
-        except:
+        except Exception:  # noqa: E722
             self.lbl_score_valeur.setText("-")
 
         try:
             rank = int(data.get("Calculated Rank", 0))
             self.lbl_rank_valeur.setText(f"Rang mondial ({annee}) : #{rank}")
-        except:
+        except Exception:  # noqa: E722
             self.lbl_rank_valeur.setText("Rang : -")
 
         # Indicateurs
         def set_val(lbl, col):
             try:
-                lbl.setText(f"{float(data.get(col)):.2f}") # type: ignore
-            except:
+                lbl.setText(f"{float(data.get(col)):.2f}")  # type: ignore
+            except Exception:  # noqa: E722
                 lbl.setText("-")
 
         set_val(self.val_gdp, "gdp_per_capita")
@@ -269,14 +310,20 @@ class MapWidget(QWidget):
     def update_graph(self, nom_pays_csv):
         self.figure.clear()
 
-        histo = self.data_happiness[self.data_happiness["Country"] == nom_pays_csv].sort_values("Year")
+        histo = self.data_happiness[
+            self.data_happiness["Country"] == nom_pays_csv
+        ].sort_values("Year")
         if not histo.empty:
             ax = self.figure.add_subplot(111)
             if ax is not None:
                 ax.plot(
-                    histo["Year"], histo["happiness_score"],
-                    marker="o", linestyle="-", color="#2E86C1",
-                    linewidth=2, markersize=5
+                    histo["Year"],
+                    histo["happiness_score"],
+                    marker="o",
+                    linestyle="-",
+                    color="#2E86C1",
+                    linewidth=2,
+                    markersize=5,
                 )
 
                 for _, row in histo.iterrows():
@@ -291,9 +338,9 @@ class MapWidget(QWidget):
                             va="bottom",
                             fontsize=7,
                             color="#333",
-                            fontweight="bold"
+                            fontweight="bold",
                         )
-                    except:
+                    except Exception:  # noqa: E722
                         continue
 
                 ax.set_title("Évolution (2015-2020)", fontsize=6, color="#444")
@@ -308,11 +355,20 @@ class MapWidget(QWidget):
 
     def get_country_code(self, name):
         corrections = {
-            "United States": "US", "Russia": "RU", "Tanzania": "TZ",
-            "Congo (Kinshasa)": "CD", "Congo (Brazzaville)": "CG",
-            "Iran": "IR", "Vietnam": "VN", "South Korea": "KR",
-            "Laos": "LA", "Syria": "SY", "Moldova": "MD",
-            "Bolivia": "BO", "Venezuela": "VE", "Taiwan": "TW"
+            "United States": "US",
+            "Russia": "RU",
+            "Tanzania": "TZ",
+            "Congo (Kinshasa)": "CD",
+            "Congo (Brazzaville)": "CG",
+            "Iran": "IR",
+            "Vietnam": "VN",
+            "South Korea": "KR",
+            "Laos": "LA",
+            "Syria": "SY",
+            "Moldova": "MD",
+            "Bolivia": "BO",
+            "Venezuela": "VE",
+            "Taiwan": "TW",
         }
         if name in corrections:
             return corrections[name].lower()
@@ -320,8 +376,8 @@ class MapWidget(QWidget):
         try:
             res = pycountry.countries.search_fuzzy(name)
             if res:
-                return res[0].alpha_2.lower() # type: ignore
-        except:
+                return res[0].alpha_2.lower()  # type: ignore
+        except Exception:  # noqa: E722
             pass
         return None
 
@@ -350,19 +406,22 @@ class MapWidget(QWidget):
         }
         """
 
-        m.get_root().header.add_child( # type: ignore
-            folium.Element("<style>.leaflet-interactive:focus { outline: none !important; }</style>")
+        m.get_root().header.add_child(  # type: ignore
+            folium.Element(
+                "<style>.leaflet-interactive:focus { outline: none !important; }</style>"
+            )
         )
-    
-        m.get_root().script.add_child( # type: ignore
-            folium.Element(f""" 
+
+        m.get_root().script.add_child(  # type: ignore
+            folium.Element(f"""
             var geojsonLayer = L.geoJson(null, {{
                 style: function(f) {{ return {{ fillColor: '#D6EAF8', color: '#5DADE2', weight: 0.7, fillOpacity: 0.7 }}; }},
                 onEachFeature: onEachFeature
-            }}); 
+            }});
             fetch("{geo_url}").then(r => r.json()).then(d => {{ geojsonLayer.addData(d); geojsonLayer.addTo({map_id}); }});
             {click_js}
-        """)) 
+        """)
+        )
 
         data = io.BytesIO()
         m.save(data, close_file=False)

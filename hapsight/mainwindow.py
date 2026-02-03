@@ -1,12 +1,11 @@
 import sys
+
 import pandas as pd
-import ctypes  # Nécessaire pour le fix de l'icône dans la barre des tâches Windows
-
-from PySide6.QtWidgets import QApplication, QMainWindow, QTabWidget
 from PySide6.QtGui import QIcon
+from PySide6.QtWidgets import QApplication, QMainWindow, QTabWidget
 
-from hapsight.mapwidget import MapWidget
 from hapsight.countrieswidget import CountriesWidget
+from hapsight.mapwidget import MapWidget
 from hapsight.stats_widget import StatsWidget
 
 
@@ -36,11 +35,10 @@ class MainWindow(QMainWindow):
 
 
 def main():
-
     app = QApplication(sys.argv)
     app.setWindowIcon(QIcon("dataset/iconapp.png"))
     window = MainWindow()
-    window.showMaximized() 
+    window.showMaximized()
     sys.exit(app.exec())
 
 

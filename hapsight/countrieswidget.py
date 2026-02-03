@@ -1,11 +1,18 @@
 from __future__ import annotations
 
 import pandas as pd
-
-from PySide6.QtCore import Qt, QAbstractTableModel, QModelIndex, QSortFilterProxyModel
+from PySide6.QtCore import QAbstractTableModel, QModelIndex, QSortFilterProxyModel, Qt
 from PySide6.QtWidgets import (
-    QWidget, QVBoxLayout, QHBoxLayout, QTableView,
-    QLabel, QLineEdit, QComboBox, QDoubleSpinBox, QGroupBox, QPushButton
+    QComboBox,
+    QDoubleSpinBox,
+    QGroupBox,
+    QHBoxLayout,
+    QLabel,
+    QLineEdit,
+    QPushButton,
+    QTableView,
+    QVBoxLayout,
+    QWidget,
 )
 
 COUNTRY_COL = "Country"
@@ -17,7 +24,6 @@ HEALTH_COL = "health"
 
 
 class PandasTableModel(QAbstractTableModel):
-
     def __init__(self, df: pd.DataFrame):
         super().__init__()
         self._df = df
@@ -28,11 +34,11 @@ class PandasTableModel(QAbstractTableModel):
     def columnCount(self, parent=QModelIndex()):
         return len(self._df.columns)
 
-    def data(self, index: QModelIndex, role=Qt.DisplayRole): # type: ignore
+    def data(self, index: QModelIndex, role=Qt.DisplayRole):  # type: ignore
         if not index.isValid():
             return None
 
-        if role in (Qt.DisplayRole, Qt.EditRole): # type: ignore
+        if role in (Qt.DisplayRole, Qt.EditRole):  # type: ignore
             value = self._df.iat[index.row(), index.column()]
             if pd.isna(value):
                 return ""
@@ -42,10 +48,12 @@ class PandasTableModel(QAbstractTableModel):
 
         return None
 
-    def headerData(self, section: int, orientation: Qt.Orientation, role=Qt.DisplayRole): # type: ignore
-        if role != Qt.DisplayRole: # type: ignore
+    def headerData(
+        self, section: int, orientation: Qt.Orientation, role=Qt.DisplayRole
+    ):  # type: ignore
+        if role != Qt.DisplayRole:  # type: ignore
             return None
-        if orientation == Qt.Horizontal: # type: ignore
+        if orientation == Qt.Horizontal:  # type: ignore
             return str(self._df.columns[section])
         return str(section + 1)
 
@@ -60,7 +68,7 @@ class CountriesFilterProxy(QSortFilterProxyModel):
         self._continent = "Tous"
         self._year: int | None = None
         self._ranges: dict[str, tuple[float | None, float | None]] = {}
-        self.setFilterCaseSensitivity(Qt.CaseInsensitive) # type: ignore
+        self.setFilterCaseSensitivity(Qt.CaseInsensitive)  # type: ignore
 
     def set_name_contains(self, text: str):
         self._name_contains = (text or "").strip().lower()
@@ -87,7 +95,7 @@ class CountriesFilterProxy(QSortFilterProxyModel):
         if model is None:
             return True
 
-        df = model.df() # type: ignore
+        df = model.df()  # type: ignore
         row = df.iloc[source_row]
 
         if self._name_contains:
@@ -175,15 +183,19 @@ class CountriesWidget(QWidget):
 
         layout.addWidget(filters_box)
 
-        # Filtres numériques 
+        # Filtres numériques
         numeric_box = QGroupBox("Filtres numériques")
         numeric_layout = QHBoxLayout(numeric_box)
 
         # Filtres fixes (bonheur/PIB/santé)
-        self.fixed_spins = {}  
-        self._add_range_filter(numeric_layout, label="Bonheur", col=HAPPINESS_COL, store=True)
+        self.fixed_spins = {}
+        self._add_range_filter(
+            numeric_layout, label="Bonheur", col=HAPPINESS_COL, store=True
+        )
         self._add_range_filter(numeric_layout, label="PIB", col=GDP_COL, store=True)
-        self._add_range_filter(numeric_layout, label="Santé", col=HEALTH_COL, store=True)
+        self._add_range_filter(
+            numeric_layout, label="Santé", col=HEALTH_COL, store=True
+        )
 
         # Filtre custom
         self.custom_col_combo = QComboBox()
@@ -216,8 +228,16 @@ class CountriesWidget(QWidget):
             col = self.custom_col_combo.currentText()
             if col == "— colonne —":
                 return
-            vmin = None if self.custom_min.value() == self.custom_min.minimum() else float(self.custom_min.value())
-            vmax = None if self.custom_max.value() == self.custom_max.minimum() else float(self.custom_max.value())
+            vmin = (
+                None
+                if self.custom_min.value() == self.custom_min.minimum()
+                else float(self.custom_min.value())
+            )
+            vmax = (
+                None
+                if self.custom_max.value() == self.custom_max.minimum()
+                else float(self.custom_max.value())
+            )
             self.proxy.set_range(col, vmin, vmax)
 
         def on_custom_col_change(_):
@@ -257,8 +277,8 @@ class CountriesWidget(QWidget):
         self.table.setModel(self.proxy)
         self.table.setSortingEnabled(True)  # tri par clic sur entête
         self.table.setAlternatingRowColors(True)
-        self.table.setSelectionBehavior(QTableView.SelectRows)# type: ignore
-        self.table.setSelectionMode(QTableView.SingleSelection)# type: ignore
+        self.table.setSelectionBehavior(QTableView.SelectRows)  # type: ignore
+        self.table.setSelectionMode(QTableView.SingleSelection)  # type: ignore
         self.table.horizontalHeader().setStretchLastSection(True)
 
         layout.addWidget(self.table, 1)
@@ -293,7 +313,9 @@ class CountriesWidget(QWidget):
 
         self._update_results_label()
 
-    def _add_range_filter(self, parent_layout: QHBoxLayout, label: str, col: str, store: bool = False):
+    def _add_range_filter(
+        self, parent_layout: QHBoxLayout, label: str, col: str, store: bool = False
+    ):
         if col not in self.df.columns:
             return
 
@@ -315,8 +337,16 @@ class CountriesWidget(QWidget):
         box.addWidget(max_spin)
 
         def on_change():
-            vmin = None if min_spin.value() == min_spin.minimum() else float(min_spin.value())
-            vmax = None if max_spin.value() == max_spin.minimum() else float(max_spin.value())
+            vmin = (
+                None
+                if min_spin.value() == min_spin.minimum()
+                else float(min_spin.value())
+            )
+            vmax = (
+                None
+                if max_spin.value() == max_spin.minimum()
+                else float(max_spin.value())
+            )
             self.proxy.set_range(col, vmin, vmax)
             self._update_results_label()
 
