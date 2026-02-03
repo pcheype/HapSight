@@ -267,8 +267,8 @@ class MapWidget(QWidget):
                     pix.loadFromData(r.content)
                     pix = pix.scaled(
                         self.lbl_drapeau.size(),
-                        Qt.KeepAspectRatio, #type: ignore
-                        Qt.SmoothTransformation, #type: ignore
+                        Qt.KeepAspectRatio,  # type: ignore
+                        Qt.SmoothTransformation,  # type: ignore
                     )  # type: ignore
                     self.lbl_drapeau.setPixmap(pix)
                 else:
