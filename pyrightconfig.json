@@ -1,0 +1,11 @@
+{
+  "typeCheckingMode": "basic",
+  "pythonVersion": "3.10",
+  "include": ["hapsight"],
+  "venvPath": ".",
+  "pythonPlatform": "Windows",
+  "reportMissingImports": false,
+  "reportMissingTypeStubs": false,
+  "reportMissingModuleSource": false,
+  "reportOptionalSubscript": false
+}
