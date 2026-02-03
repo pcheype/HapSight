@@ -1,16 +1,16 @@
 import sys
 import pandas as pd
+import ctypes  # Nécessaire pour le fix de l'icône dans la barre des tâches Windows
 
 from PySide6.QtWidgets import QApplication, QMainWindow, QTabWidget
+from PySide6.QtGui import QIcon
 
 from hapsight.mapwidget import MapWidget
-from hapsight.statswidget import StatsWidget
 from hapsight.countrieswidget import CountriesWidget
-from hapsight.paolo_stats_widget import PaoloStatsWidget
+from hapsight.stats_widget import StatsWidget
 
 
 def load_data() -> pd.DataFrame:
-    # Chemin relatif depuis la racine du repo (là où tu lances `uv run hapsight`)
     return pd.read_csv("dataset/happiness.csv")
 
 
@@ -24,26 +24,23 @@ class MainWindow(QMainWindow):
         df = load_data()
 
         self.tab_manager = QTabWidget()
-
-        # ✅ On passe df à tous les onglets
         self.map_tab = MapWidget(df)
-        self.stats_tab = StatsWidget(df)
         self.countries_tab = CountriesWidget(df)
-        self.PaoloStats_tab = PaoloStatsWidget(df)
+        self.PaoloStats_tab = StatsWidget(df)
 
         self.tab_manager.addTab(self.map_tab, "Carte du Monde")
-        self.tab_manager.addTab(self.stats_tab, "Statistiques et Corrélations")
+        self.tab_manager.addTab(self.PaoloStats_tab, "Stats et Corrélations")
         self.tab_manager.addTab(self.countries_tab, "Pays")
-        self.tab_manager.addTab(self.PaoloStats_tab, "Stats Paolo")
-
 
         self.setCentralWidget(self.tab_manager)
 
 
 def main():
+
     app = QApplication(sys.argv)
+    app.setWindowIcon(QIcon("dataset/iconapp.png"))
     window = MainWindow()
-    window.show()
+    window.showMaximized() 
     sys.exit(app.exec())
 
 

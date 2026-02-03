@@ -3,13 +3,10 @@ import requests
 import pycountry
 import pandas as pd
 import folium
-
-# --- MATPLOTLIB / QT ---
 import matplotlib
 matplotlib.use("QtAgg")  # Obligatoire pour PySide6
 from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg
 from matplotlib.figure import Figure
-
 from PySide6.QtCore import Qt, QUrl
 from PySide6.QtGui import QPixmap
 from PySide6.QtWebEngineWidgets import QWebEngineView
@@ -23,46 +20,37 @@ class MapWidget(QWidget):
     def __init__(self, df: pd.DataFrame, parent=None):
         super().__init__(parent)
 
-        # --- Etat ---
         self.pays_actuel = None
 
-        # --- Données ---
         self.df = df
         self.data_happiness = None
         self.load_df_data()
 
-        # --- Layout principal ---
         layout = QHBoxLayout(self)
         layout.setContentsMargins(10, 10, 10, 10)
         layout.setSpacing(10)
 
-        # =========================================================
         # GAUCHE : CARTE
-        # =========================================================
         self.cartegroupbox = QGroupBox()
         self.cartegroupbox.setStyleSheet("QGroupBox { border: 1px solid #CCC; border-radius: 5px; }")
         carte_layout = QVBoxLayout()
         carte_layout.setContentsMargins(1, 1, 1, 1)
 
         self.web_view = QWebEngineView()
-        # ✅ Le clic JS met document.title = "Country Name"
-        # ✅ Qt reçoit via titleChanged
         self.web_view.titleChanged.connect(self.on_country_clicked)
 
         carte_layout.addWidget(self.web_view)
         self.cartegroupbox.setLayout(carte_layout)
         layout.addWidget(self.cartegroupbox)
 
-        # =========================================================
         # DROITE : DASHBOARD
-        # =========================================================
         self.infogroupbox = QFrame()
         self.infogroupbox.setStyleSheet("QFrame { background-color: #F8F9F9; border-radius: 8px; }")
 
         info_layout = QVBoxLayout()
         info_layout.setSpacing(15)
 
-        # --- Sélecteur année ---
+        # ANNEE
         year_layout = QHBoxLayout()
         lbl_annee = QLabel("📅 Année :")
         lbl_annee.setStyleSheet("font-weight: bold; color: #555;")
@@ -78,7 +66,7 @@ class MapWidget(QWidget):
         year_layout.addStretch()
         info_layout.addLayout(year_layout)
 
-        # --- Header drapeau + pays ---
+        # DRAPEAU
         header_layout = QHBoxLayout()
 
         self.lbl_drapeau = QLabel("🏳️")
@@ -94,7 +82,7 @@ class MapWidget(QWidget):
         header_layout.addWidget(self.lbl_pays, stretch=1)
         info_layout.addLayout(header_layout)
 
-        # --- Hero score ---
+        # SCORES
         score_frame = QFrame()
         score_frame.setStyleSheet("QFrame { background-color: #D6EAF8; border: 1px solid #AED6F1; border-radius: 10px; }")
         score_layout = QVBoxLayout(score_frame)
@@ -116,7 +104,6 @@ class MapWidget(QWidget):
         score_layout.addWidget(self.lbl_rank_valeur)
         info_layout.addWidget(score_frame)
 
-        # --- Détails ---
         self.val_gdp = QLabel("-")
         self.val_health = QLabel("-")
         self.val_cpi = QLabel("-")
@@ -154,7 +141,7 @@ class MapWidget(QWidget):
         details_group.setLayout(grid_stats)
         info_layout.addWidget(details_group)
 
-        # --- Graph ---
+        # GRAPHIQUE
         self.figure = Figure(figsize=(4, 3), dpi=100)
         self.figure.patch.set_facecolor("none")
         self.canvas = FigureCanvasQTAgg(self.figure)
@@ -171,34 +158,22 @@ class MapWidget(QWidget):
         # --- Carte ---
         self.load_folium_map()
 
-    # =========================================================
-    # DONNEES
-    # =========================================================
     def load_df_data(self):
-        if self.df is None or getattr(self.df, "empty", True):
-            print("ERREUR : DataFrame vide ou None")
-            self.data_happiness = None
-            return
 
-        try:
-            df = self.df.copy()
-            df.columns = df.columns.str.strip()
+        df = self.df.copy()
+        df.columns = df.columns.str.strip()
 
-            df["happiness_score"] = pd.to_numeric(df["happiness_score"], errors="coerce")
-            df["Year"] = pd.to_numeric(df["Year"], errors="coerce").fillna(0).astype(int)
+        df["happiness_score"] = pd.to_numeric(df["happiness_score"], errors="coerce")
+        df["Year"] = pd.to_numeric(df["Year"], errors="coerce").fillna(0).astype(int)
 
-            df = df.sort_values(by=["Year", "happiness_score"], ascending=[True, False])
-            df["Calculated Rank"] = df.groupby("Year").cumcount() + 1
+        df = df.sort_values(by=["Year", "happiness_score"], ascending=[True, False])
+        df["Calculated Rank"] = df.groupby("Year").cumcount() + 1
 
-            self.data_happiness = df
-            print("Données DF chargées, triées et classées.")
-        except Exception as e:
-            print(f"Erreur préparation DF : {e}")
-            self.data_happiness = None
+        self.data_happiness = df
+        print("Données DF chargées! Ouverture de l'application.")
 
-    # =========================================================
+
     # EVENTS
-    # =========================================================
     def on_country_clicked(self, title):
         if not title or "qrc:/" in title or "http" in title:
             return
@@ -210,9 +185,7 @@ class MapWidget(QWidget):
         if self.pays_actuel:
             self.afficher_donnees_pays()
 
-    # =========================================================
-    # ✅ METHODE QUI MANQUAIT : AFFICHAGE PAYS
-    # =========================================================
+    #AFFICHER PAYS
     def afficher_donnees_pays(self):
         if not self.pays_actuel or self.data_happiness is None:
             return
@@ -255,7 +228,7 @@ class MapWidget(QWidget):
                 if r.status_code == 200:
                     pix = QPixmap()
                     pix.loadFromData(r.content)
-                    pix = pix.scaled(self.lbl_drapeau.size(), Qt.KeepAspectRatio, Qt.SmoothTransformation)
+                    pix = pix.scaled(self.lbl_drapeau.size(), Qt.KeepAspectRatio, Qt.SmoothTransformation) # type: ignore
                     self.lbl_drapeau.setPixmap(pix)
                 else:
                     self.lbl_drapeau.setText("🏳️")
@@ -280,7 +253,7 @@ class MapWidget(QWidget):
         # Indicateurs
         def set_val(lbl, col):
             try:
-                lbl.setText(f"{float(data.get(col)):.2f}")
+                lbl.setText(f"{float(data.get(col)):.2f}") # type: ignore
             except:
                 lbl.setText("-")
 
@@ -293,52 +266,46 @@ class MapWidget(QWidget):
 
         self.update_graph(nom_recherche)
 
-    # =========================================================
-    # GRAPH
-    # =========================================================
     def update_graph(self, nom_pays_csv):
         self.figure.clear()
 
         histo = self.data_happiness[self.data_happiness["Country"] == nom_pays_csv].sort_values("Year")
         if not histo.empty:
             ax = self.figure.add_subplot(111)
+            if ax is not None:
+                ax.plot(
+                    histo["Year"], histo["happiness_score"],
+                    marker="o", linestyle="-", color="#2E86C1",
+                    linewidth=2, markersize=5
+                )
 
-            ax.plot(
-                histo["Year"], histo["happiness_score"],
-                marker="o", linestyle="-", color="#2E86C1",
-                linewidth=2, markersize=5
-            )
+                for _, row in histo.iterrows():
+                    try:
+                        rank_val = int(row["Calculated Rank"])
+                        ax.annotate(
+                            f"#{rank_val}",
+                            xy=(row["Year"], row["happiness_score"]),
+                            xytext=(0, 8),
+                            textcoords="offset points",
+                            ha="center",
+                            va="bottom",
+                            fontsize=7,
+                            color="#333",
+                            fontweight="bold"
+                        )
+                    except:
+                        continue
 
-            for _, row in histo.iterrows():
-                try:
-                    rank_val = int(row["Calculated Rank"])
-                    ax.annotate(
-                        f"#{rank_val}",
-                        xy=(row["Year"], row["happiness_score"]),
-                        xytext=(0, 8),
-                        textcoords="offset points",
-                        ha="center",
-                        va="bottom",
-                        fontsize=7,
-                        color="#333",
-                        fontweight="bold"
-                    )
-                except:
-                    continue
-
-            ax.set_title("Évolution (2015-2020)", fontsize=6, color="#444")
-            ax.spines["top"].set_visible(False)
-            ax.spines["right"].set_visible(False)
-            ax.tick_params(labelsize=7, colors="#555")
-            ax.set_xticks(histo["Year"].unique())
-            ax.set_facecolor("#FAFAFA")
-            self.figure.tight_layout()
+                ax.set_title("Évolution (2015-2020)", fontsize=6, color="#444")
+                ax.spines["top"].set_visible(False)
+                ax.spines["right"].set_visible(False)
+                ax.tick_params(labelsize=7, colors="#555")
+                ax.set_xticks(histo["Year"].unique())
+                ax.set_facecolor("#FAFAFA")
+                self.figure.tight_layout()
 
         self.canvas.draw()
 
-    # =========================================================
-    # FLAGS
-    # =========================================================
     def get_country_code(self, name):
         corrections = {
             "United States": "US", "Russia": "RU", "Tanzania": "TZ",
@@ -353,14 +320,11 @@ class MapWidget(QWidget):
         try:
             res = pycountry.countries.search_fuzzy(name)
             if res:
-                return res[0].alpha_2.lower()
+                return res[0].alpha_2.lower() # type: ignore
         except:
             pass
         return None
 
-    # =========================================================
-    # MAP FOLIUM
-    # =========================================================
     def load_folium_map(self):
         geo_url = "https://raw.githubusercontent.com/python-visualization/folium/main/examples/data/world-countries.json"
 
@@ -386,18 +350,19 @@ class MapWidget(QWidget):
         }
         """
 
-        m.get_root().header.add_child(
+        m.get_root().header.add_child( # type: ignore
             folium.Element("<style>.leaflet-interactive:focus { outline: none !important; }</style>")
         )
-
-        m.get_root().script.add_child(folium.Element(f"""
+    
+        m.get_root().script.add_child( # type: ignore
+            folium.Element(f""" 
             var geojsonLayer = L.geoJson(null, {{
                 style: function(f) {{ return {{ fillColor: '#D6EAF8', color: '#5DADE2', weight: 0.7, fillOpacity: 0.7 }}; }},
                 onEachFeature: onEachFeature
-            }});
+            }}); 
             fetch("{geo_url}").then(r => r.json()).then(d => {{ geojsonLayer.addData(d); geojsonLayer.addTo({map_id}); }});
             {click_js}
-        """))
+        """)) 
 
         data = io.BytesIO()
         m.save(data, close_file=False)

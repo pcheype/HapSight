@@ -1,4 +1,3 @@
-# hapsight/countrieswidget.py
 from __future__ import annotations
 
 import pandas as pd
@@ -9,32 +8,31 @@ from PySide6.QtWidgets import (
     QLabel, QLineEdit, QComboBox, QDoubleSpinBox, QGroupBox, QPushButton
 )
 
-# ✅ NOMS EXACTS DE TA BDD
 COUNTRY_COL = "Country"
 CONTINENT_COL = "continent"
 YEAR_COL = "Year"
-
 HAPPINESS_COL = "happiness_score"
 GDP_COL = "gdp_per_capita"
 HEALTH_COL = "health"
 
 
 class PandasTableModel(QAbstractTableModel):
+
     def __init__(self, df: pd.DataFrame):
         super().__init__()
         self._df = df
 
-    def rowCount(self, parent=QModelIndex()) -> int:
+    def rowCount(self, parent=QModelIndex()):
         return len(self._df)
 
-    def columnCount(self, parent=QModelIndex()) -> int:
+    def columnCount(self, parent=QModelIndex()):
         return len(self._df.columns)
 
-    def data(self, index: QModelIndex, role=Qt.DisplayRole):
+    def data(self, index: QModelIndex, role=Qt.DisplayRole): # type: ignore
         if not index.isValid():
             return None
 
-        if role in (Qt.DisplayRole, Qt.EditRole):
+        if role in (Qt.DisplayRole, Qt.EditRole): # type: ignore
             value = self._df.iat[index.row(), index.column()]
             if pd.isna(value):
                 return ""
@@ -44,10 +42,10 @@ class PandasTableModel(QAbstractTableModel):
 
         return None
 
-    def headerData(self, section: int, orientation: Qt.Orientation, role=Qt.DisplayRole):
-        if role != Qt.DisplayRole:
+    def headerData(self, section: int, orientation: Qt.Orientation, role=Qt.DisplayRole): # type: ignore
+        if role != Qt.DisplayRole: # type: ignore
             return None
-        if orientation == Qt.Horizontal:
+        if orientation == Qt.Horizontal: # type: ignore
             return str(self._df.columns[section])
         return str(section + 1)
 
@@ -56,20 +54,13 @@ class PandasTableModel(QAbstractTableModel):
 
 
 class CountriesFilterProxy(QSortFilterProxyModel):
-    """
-    Filtres combinés (AND) :
-    - Pays (contient)
-    - Continent (exact)
-    - Année (exact)
-    - Ranges numériques (min/max) par colonne
-    """
     def __init__(self, parent=None):
         super().__init__(parent)
         self._name_contains = ""
         self._continent = "Tous"
         self._year: int | None = None
         self._ranges: dict[str, tuple[float | None, float | None]] = {}
-        self.setFilterCaseSensitivity(Qt.CaseInsensitive)
+        self.setFilterCaseSensitivity(Qt.CaseInsensitive) # type: ignore
 
     def set_name_contains(self, text: str):
         self._name_contains = (text or "").strip().lower()
@@ -96,20 +87,17 @@ class CountriesFilterProxy(QSortFilterProxyModel):
         if model is None:
             return True
 
-        df = model.df()
+        df = model.df() # type: ignore
         row = df.iloc[source_row]
 
-        # --- Filtre nom pays ---
         if self._name_contains:
             if self._name_contains not in str(row[COUNTRY_COL]).lower():
                 return False
 
-        # --- Filtre continent ---
         if self._continent != "Tous":
             if str(row[CONTINENT_COL]) != self._continent:
                 return False
 
-        # --- Filtre année ---
         if self._year is not None:
             try:
                 if int(row[YEAR_COL]) != int(self._year):
@@ -117,7 +105,6 @@ class CountriesFilterProxy(QSortFilterProxyModel):
             except Exception:
                 return False
 
-        # --- Filtres numériques min/max ---
         for col, (vmin, vmax) in self._ranges.items():
             if col not in df.columns:
                 continue
@@ -147,18 +134,13 @@ class CountriesWidget(QWidget):
 
         layout = QVBoxLayout(self)
 
-        # =========================
-        # Barre de filtres
-        # =========================
         filters_box = QGroupBox("Filtres")
         filters_layout = QHBoxLayout(filters_box)
 
-        # Recherche par pays
         self.name_input = QLineEdit()
         self.name_input.setPlaceholderText("Rechercher un pays…")
         self.name_input.textChanged.connect(self.proxy.set_name_contains)
 
-        # Continent
         self.continent_combo = QComboBox()
         self.continent_combo.addItem("Tous")
         continents = sorted([c for c in df[CONTINENT_COL].dropna().unique().tolist()])
@@ -166,7 +148,6 @@ class CountriesWidget(QWidget):
             self.continent_combo.addItem(str(c))
         self.continent_combo.currentTextChanged.connect(self.proxy.set_continent)
 
-        # Année
         self.year_combo = QComboBox()
         self.year_combo.addItem("Toutes")
         years = sorted([int(y) for y in df[YEAR_COL].dropna().unique().tolist()])
@@ -181,7 +162,6 @@ class CountriesWidget(QWidget):
 
         self.year_combo.currentTextChanged.connect(on_year_change)
 
-        # Reset
         self.reset_btn = QPushButton("Reset")
         self.reset_btn.clicked.connect(self.reset_filters)
 
@@ -195,23 +175,20 @@ class CountriesWidget(QWidget):
 
         layout.addWidget(filters_box)
 
-        # =========================
-        # Filtres numériques (fixes + custom)
-        # =========================
+        # Filtres numériques 
         numeric_box = QGroupBox("Filtres numériques")
         numeric_layout = QHBoxLayout(numeric_box)
 
         # Filtres fixes (bonheur/PIB/santé)
-        self.fixed_spins = {}  # col -> (min_spin, max_spin)
+        self.fixed_spins = {}  
         self._add_range_filter(numeric_layout, label="Bonheur", col=HAPPINESS_COL, store=True)
         self._add_range_filter(numeric_layout, label="PIB", col=GDP_COL, store=True)
         self._add_range_filter(numeric_layout, label="Santé", col=HEALTH_COL, store=True)
 
-        # Filtre custom : choisir la colonne + min/max
+        # Filtre custom
         self.custom_col_combo = QComboBox()
         self.custom_col_combo.addItem("— colonne —")
 
-        # Colonnes numériques candidates (hors Year)
         numeric_cols = []
         for col in df.columns:
             if col == YEAR_COL:
@@ -244,14 +221,12 @@ class CountriesWidget(QWidget):
             self.proxy.set_range(col, vmin, vmax)
 
         def on_custom_col_change(_):
-            # reset des spins à chaque changement de colonne
             self.custom_min.blockSignals(True)
             self.custom_max.blockSignals(True)
             self.custom_min.setValue(self.custom_min.minimum())
             self.custom_max.setValue(self.custom_max.minimum())
             self.custom_min.blockSignals(False)
             self.custom_max.blockSignals(False)
-            # (on n'applique pas automatiquement, l'utilisateur choisit les bornes)
 
         self.custom_col_combo.currentTextChanged.connect(on_custom_col_change)
         self.custom_min.valueChanged.connect(apply_custom_range)
@@ -266,9 +241,7 @@ class CountriesWidget(QWidget):
 
         layout.addWidget(numeric_box)
 
-        # =========================
         # Compteur de résultats
-        # =========================
         self.results_label = QLabel("")
         layout.addWidget(self.results_label)
         self._update_results_label()
@@ -279,15 +252,13 @@ class CountriesWidget(QWidget):
         self.proxy.rowsInserted.connect(self._update_results_label)
         self.proxy.rowsRemoved.connect(self._update_results_label)
 
-        # =========================
         # Table
-        # =========================
         self.table = QTableView()
         self.table.setModel(self.proxy)
         self.table.setSortingEnabled(True)  # tri par clic sur entête
         self.table.setAlternatingRowColors(True)
-        self.table.setSelectionBehavior(QTableView.SelectRows)
-        self.table.setSelectionMode(QTableView.SingleSelection)
+        self.table.setSelectionBehavior(QTableView.SelectRows)# type: ignore
+        self.table.setSelectionMode(QTableView.SingleSelection)# type: ignore
         self.table.horizontalHeader().setStretchLastSection(True)
 
         layout.addWidget(self.table, 1)

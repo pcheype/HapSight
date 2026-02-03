@@ -11,7 +11,9 @@ dependencies = [
     "folium",
     "scipy",
     "numpy",
-    "scikit-learn"
+    "scikit-learn",
+    "matplotlib",
+    "pycountry"
 ]
 
 
