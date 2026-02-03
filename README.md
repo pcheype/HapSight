@@ -47,6 +47,8 @@ Contributions are encouraged within a pedagogical context.
 uv run hapsight
 ```
 
+---
+
 ## Development
 
 ### How to run pre-commit
