@@ -1,13 +1,8 @@
 import sys
 import pandas as pd
 
-from PySide6.QtWidgets import (
-    QApplication,
-    QMainWindow,
-    QTabWidget,  # Import pour le système d'onglets
-)
-from PySide6.QtGui import QAction
-from PySide6.QtCore import Qt
+from PySide6.QtWidgets import QApplication, QMainWindow, QTabWidget
+
 from hapsight.mapwidget import MapWidget
 from hapsight.statswidget import StatsWidget
 from hapsight.countrieswidget import CountriesWidget
@@ -16,7 +11,7 @@ from hapsight.paolo_stats_widget import PaoloStatsWidget
 
 def load_data() -> pd.DataFrame:
     # Chemin relatif depuis la racine du repo (là où tu lances `uv run hapsight`)
-    return pd.read_csv("dataset/WorldHappiness_Corruption_2015_2020.csv")
+    return pd.read_csv("dataset/happiness.csv")
 
 
 class MainWindow(QMainWindow):
@@ -29,12 +24,13 @@ class MainWindow(QMainWindow):
         df = load_data()
 
         self.tab_manager = QTabWidget()
-        
-        # --- 2. Création des instances de nos widgets d'onglets ---
-        self.map_tab = MapWidget()
-        self.stats_tab = StatsWidget()
 
-        # --- 3. Ajout des onglets au QTabWidget ---
+        # ✅ On passe df à tous les onglets
+        self.map_tab = MapWidget(df)
+        self.stats_tab = StatsWidget(df)
+        self.countries_tab = CountriesWidget(df)
+        self.PaoloStats_tab = PaoloStatsWidget(df)
+
         self.tab_manager.addTab(self.map_tab, "Carte du Monde")
         self.tab_manager.addTab(self.stats_tab, "Statistiques et Corrélations")
         self.tab_manager.addTab(self.countries_tab, "Pays")
