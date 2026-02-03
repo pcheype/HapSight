@@ -4,15 +4,11 @@ This project was started with [supopo-pai-cookiecutter-template](https://github.
 
 HappySight is a desktop application developed in Python to explore and analyze **world happiness** and **corruption perception** data over the period **2015–2020**.
 
-This project was developed as part of the *Programming for Engineers* course and focuses on:
-- clear and modular software architecture,
-- code readability and maintainability,
-- ease of collaboration,
-- reliable and explainable implementations.
+This project was developed as part of a course.
 
 ---
 
-## 🎯 Project Objectives
+## Project Objectives
 
 The main goal of HappySight is to provide an interactive tool that allows users to:
 
@@ -24,7 +20,7 @@ The main goal of HappySight is to provide an interactive tool that allows users 
 
 ---
 
-## 📊 Dataset
+## Dataset
 
 The project uses the **World Happiness & Corruption (2015–2020)** dataset from Kaggle, which includes:
 - 132 countries,
@@ -32,6 +28,12 @@ The project uses the **World Happiness & Corruption (2015–2020)** dataset from
 - multiple indicators such as happiness score, GDP per capita, health, freedom, generosity, and corruption perception.
 
 All data are loaded into a **single Pandas DataFrame**, which is shared across all application modules to ensure consistency between views.
+
+---
+
+## Contributing to the Project
+
+Contributions are encouraged within a pedagogical context.
 
 ---
 
